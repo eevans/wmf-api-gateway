@@ -11,7 +11,7 @@ RUN set -ex; \
     apt-get install -y build-essential \
                        golang-go
 
-RUN groupadd -r kask && useradd -r -g kask kask
+RUN groupadd -r echoapi && useradd -r -g echoapi echoapi
 
 WORKDIR /app
 
@@ -21,6 +21,6 @@ RUN make
 
 EXPOSE 8080
 
-USER kask
+USER echoapi
 
 CMD ["./echoapi"]
