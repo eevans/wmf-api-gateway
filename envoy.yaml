@@ -28,7 +28,7 @@ static_resources:
               - match:
                   safe_regex:
                     google_re2: {}
-                    regex: "/core/v[\\d]{1}/wikipedia/en/"
+                    regex: "^/core/v\\d{1}/wikipedia/en/.*$"
                 route:
                   regex_rewrite:
                     pattern:
