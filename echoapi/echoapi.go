@@ -20,6 +20,7 @@ var (
 type jsonResponse struct {
 	Path    string              `json:"path"`
 	Method  string              `json:"method"`
+	Host    string              `json:"host"`
 	Body    string              `json:"body"`
 	Form    map[string][]string `json:"form"`
 	Headers map[string][]string `json:"headers"`
@@ -38,7 +39,7 @@ func newJSONResponse(req *http.Request) jsonResponse {
 		encoded = base64.StdEncoding.EncodeToString(body)
 	}
 
-	return jsonResponse{req.URL.Path, req.Method, encoded, req.Form, req.Header}
+	return jsonResponse{req.URL.Path, req.Method, req.Host, encoded, req.Form, req.Header}
 }
 
 
