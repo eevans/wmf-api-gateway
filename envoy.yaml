@@ -26,21 +26,27 @@ static_resources:
               domains: ["*"]
               routes:
               - match:
+                  prefix: "/core/v1/wikipedia/en/"
+                route:
+                  prefix_rewrite: "/w/rest.php/v1/"
+                  host_rewrite: en.wikipedia.org
+                  cluster: service_echoapi
+              - match:
                   prefix: "/"
                 route:
                   host_rewrite: www.google.com
-                  cluster: service_google
+                  cluster: service_echoapi
           http_filters:
           - name: envoy.filters.http.router
   clusters:
-  - name: service_google
+  - name: service_echoapi
     connect_timeout: 0.25s
     type: LOGICAL_DNS
     # Comment out the following line to test on v6 networks
     dns_lookup_family: V4_ONLY
     lb_policy: ROUND_ROBIN
     load_assignment:
-      cluster_name: service_google
+      cluster_name: service_echoapi
       endpoints:
       - lb_endpoints:
         - endpoint:
