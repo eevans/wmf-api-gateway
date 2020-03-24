@@ -9,6 +9,7 @@ A REST API that simply echos back request data as JSON
 
 To build a Docker image:
 
+    $ cd echoapi/
     $ make docker_image
 
 To run `echoapi` in the foreground:
