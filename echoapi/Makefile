@@ -9,5 +9,8 @@ clean:
 docker_image:
 	docker build --tag echoapi .
 
+docker_run:
+	docker run --rm --name echoapi echoapi
+
 .PHONY:
-	clean docker_image echoapi
+	clean docker_image docker_run echoapi
