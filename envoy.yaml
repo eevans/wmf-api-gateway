@@ -46,8 +46,9 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: 172.17.0.2
+                address: echoapi
                 port_value: 8080
+    # From Getting Started; Disabled here...
     # transport_socket:
     #   name: envoy.transport_sockets.tls
     #   typed_config:
