@@ -35,7 +35,7 @@ static_resources:
                       google_re2: {}
                       regex: ".*\/([^\/]+)\/wikipedia\/([^\/]+)(\/.*)$"
                     substitution: /w/rest.php/\1\3
-                  host_rewrite: en.wikipedia.org
+                  auto_host_rewrite_header: "x-internal-host"
                   cluster: service_echoapi
               - match:
                   prefix: "/"
@@ -43,6 +43,16 @@ static_resources:
                   host_rewrite: www.google.com
                   cluster: service_echoapi
           http_filters:
+          - name: envoy.filters.http.lua
+            typed_config:
+              "@type": type.googleapis.com/envoy.config.filter.http.lua.v2.Lua
+              inline_code: |
+                function envoy_on_request(request_handle)
+                  local path = request_handle:headers():get(":path")
+                  _, _, project, lang = string.match(path, "(%a)(%d)/(%a+)/(%a+)/(%a+)/(%a+)")
+
+                  request_handle:headers():add("x-internal-host", lang .. "." ..project .. ".org")
+                end
           - name: envoy.filters.http.router
   clusters:
   - name: service_echoapi
