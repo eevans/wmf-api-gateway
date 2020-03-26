@@ -11,6 +11,8 @@ You will need Docker Engine, and Docker compose installed.
 
 You will need a Docker image for the ratelimit service:
 
+    $ git submodule init  # First time
+    $ git submodule update --remote  # To pull new changes
     $ cd ratelimit
     $ docker build --tag ratelimit .
     ...
