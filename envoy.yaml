@@ -49,7 +49,7 @@ static_resources:
               inline_code: |
                 function envoy_on_request(request_handle)
                   local path = request_handle:headers():get(":path")
-                  _, _, project, lang = string.match(path, "(%a)(%d)/(%a+)/(%a+)/")
+                  project, lang = string.match(path, "^/%a+/v%d/(%a+)/(%a+)/.*$")
 
                   request_handle:headers():add("x-internal-host", lang .. "." ..project .. ".org")
                 end
