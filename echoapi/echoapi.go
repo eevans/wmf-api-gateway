@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	portNo = flag.Int("port", 8080, "Port to listen on")
+	portNo = flag.Int("port", 8888, "Port to listen on")
 )
 
 type jsonResponse struct {
