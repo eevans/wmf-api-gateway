@@ -23,9 +23,15 @@ You will need a Docker image for the echoapi service:
     $ make -C echoapi clean docker_image
     
 
-Running the environment
+Running
+-------
 
-    $ docker-compose up [--build]
+    $ docker-compose <up|down> [--build]
+
+*NOTE: If you edit `envoy.yaml`, use `--build` on the next `up` to
+re-create the envoy Docker image and copy the file in.*
+
+In another terminal:
+
     $ curl -v http://localhost:10000/foo/bar/baz  # In other terminal
-
-
+    $ curl -v http://localhost:10000/core/v5/wikipedia/en/foo/bar/baz
