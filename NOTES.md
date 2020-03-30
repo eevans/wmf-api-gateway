@@ -10,8 +10,8 @@ Rate limiting
 -------------
 
 ### What we want
-Ideally, we parse the limit to apply from an attribute of the JWT
-payload, and pass that to the rate-limiter.
+Ideally, we parse the limit from an attribute of the JWT payload, and
+pass that to the rate-limiter.
 
 ### What we have
 Envoy has an HTTP filter for global rate limiting, it utilizes a rate
