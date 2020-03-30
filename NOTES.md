@@ -1,9 +1,73 @@
-NOTES
-=====
+ENVOY NOTES
+===========
+
+See: [T248543: Evaluate Envoy proxy for API gateway (and rate-limiter)][phab]
 
 
 General (routing requests)
 --------------------------
+
+The routes we require will generally take the form
+`api.wm.o/{something}/v{version}/{project}/{lang}/{path}` to
+`{lang}.{project}.org/{...}`; We need to parse language and project
+from the source URL, and use it to construct a destination hostname.
+Envoy has no in-built mechanism for dealing with this.
+
+Our test configuration uses the Lua HTTP filter to parse the URL,
+string format the destination hostname, and inject a new HTTP header,
+`x-internal-host`.  During routing, the `auto_host_rewrite_header` is
+used to substitute the destination hostname with the value of
+`x-internal-host` (see snipet below).
+
+```yaml
+- name: envoy.filters.network.http_connection_manager
+  typed_config:
+    "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
+    stat_prefix: ingress_http
+    route_config:
+      name: local_route
+      virtual_hosts:
+      - name: local_service
+        domains: ["*"]
+        routes:
+        - match:
+            safe_regex:
+              google_re2: {}
+              regex: "^/core/v\\d{1}/wikipedia/en/.*$"
+          route:
+            regex_rewrite:
+              pattern:
+                google_re2: {}
+                regex: ".*\/([^\/]+)\/wikipedia\/([^\/]+)(\/.*)$"
+              substitution: /w/rest.php/\1\3
+            auto_host_rewrite_header: "x-internal-host"
+            cluster: service_echoapi
+        - match:
+            prefix: "/"
+          route:
+            host_rewrite: www.google.com
+            cluster: service_echoapi
+    http_filters:
+    - name: envoy.filters.http.lua
+      typed_config:
+        "@type": type.googleapis.com/envoy.config.filter.http.lua.v2.Lua
+        inline_code: |
+          function envoy_on_request(request_handle)
+            local path = request_handle:headers():get(":path")
+            project, lang = string.match(path, "^/%a+/v%d/(%a+)/(%a+)/.*$")
+
+            request_handle:headers():add("x-internal-host", lang .. "." ..project .. ".org")
+          end
+    - name: envoy.filters.http.router
+```
+
+This works, and despite seeming hacky, seems to be endorsed upstream.
+
+It is (as of yet) unclear what the performance impact of Lua scripting
+like this would be.
+
+Any *fix* would entail coding changes (forking filters if the changes
+could not be pushed upstream).
 
 
 Rate limiting
@@ -45,5 +109,6 @@ Using the [reference rate limiter service][ratelimiter] as a starting
 point might also be an option.
 
 
+[phab]: https://phabricator.wikimedia.org/T248543
 [rls.proto]: https://github.com/envoyproxy/envoy/blob/master/api/envoy/service/ratelimit/v3/rls.proto
 [ratelimiter]: https://github.com/lyft/ratelimiter
