@@ -58,6 +58,26 @@ static_resources:
                   request_handle:requestInfo():dynamicMetadata():set("envoy.lua", "project", project)
                   request_handle:requestInfo():dynamicMetadata():set("envoy.lua", "hostname", lang .. "." .. project .. ".org")
                 end
+          - name: envoy.filters.http.jwt_authn
+            config:
+              providers:
+                wikimedia:
+                  issuer: http://127.0.0.1:4444/
+                  local_jwks:
+                    filename: /etc/envoy/jwks.json
+                  forward: true
+                  from_headers:
+                    name: Authorization
+                    value_prefix: Bearer
+                  payload_in_metadata: "true"
+              rules:
+                - match:
+                    prefix: /
+                  requires:
+                    requires_any:
+                      requirements:
+                        - provider_name: wikimedia
+                        - allow_missing: {}
           - name: envoy.filters.http.router
   clusters:
   - name: service_echoapi
