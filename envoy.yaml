@@ -54,9 +54,9 @@ static_resources:
                   request_handle:headers():add("x-internal-host", lang .. "." ..project .. ".org")
 
                   -- Dynamic metadata; Can be accessed by other filters
-                  request_handle:requestInfo():dynamicMetadata():set("envoy.lua", "lang", lang)
-                  request_handle:requestInfo():dynamicMetadata():set("envoy.lua", "project", project)
-                  request_handle:requestInfo():dynamicMetadata():set("envoy.lua", "hostname", lang .. "." .. project .. ".org")
+                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "lang", lang)
+                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "project", project)
+                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "hostname", lang .. "." .. project .. ".org")
                 end
           - name: envoy.filters.http.jwt_authn
             config:
@@ -69,7 +69,7 @@ static_resources:
                   from_headers:
                     name: Authorization
                     value_prefix: Bearer
-                  payload_in_metadata: "true"
+                  payload_in_metadata: "jwt_payload"
               rules:
                 - match:
                     prefix: /

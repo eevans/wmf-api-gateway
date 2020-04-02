@@ -60,5 +60,4 @@ To get JWT (only copy access_token from output):
 
 To get JWTK for jwks.json:
 
-    $ curl -s -k -X POST -H "Content-Type: application/x-www-form-urlencoded" \
-      -d grant_type=client_credentials -u 'my-client:secret' http://localhost:4444/oauth2/token
+    $ curl -v http://localhost:4444/.well-known/jwks.json
