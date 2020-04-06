@@ -58,11 +58,18 @@ static_resources:
                   request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "project", project)
                   request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "hostname", lang .. "." .. project .. ".org")
                 end
+
+                function envoy_on_response(response_handle)
+                  -- Testing that JWT is verified and payload has been added to Dynamic metadata
+                  payload = response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")["jwt_payload"]
+
+                  response_handle:logInfo(payload.iss)
+                end
           - name: envoy.filters.http.jwt_authn
             config:
               providers:
                 wikimedia:
-                  issuer: http://127.0.0.1:4444/
+                  issuer: http://dev.wikipedia.org
                   local_jwks:
                     filename: /etc/envoy/jwks.json
                   forward: true

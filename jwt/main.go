@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	jose "github.com/square/go-jose"
 	jwt "github.com/square/go-jose/jwt"
+	jose "gopkg.in/square/go-jose.v2"
 	"io/ioutil"
 	"log"
 	"os"
