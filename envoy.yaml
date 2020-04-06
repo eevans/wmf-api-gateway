@@ -101,7 +101,7 @@ static_resources:
             address:
               socket_address:
                 address: echoapi
-                port_value: 8080
+                port_value: 8888
     # From Getting Started; Disabled here...
     # transport_socket:
     #   name: envoy.transport_sockets.tls
