@@ -24,6 +24,7 @@ static_resources:
             name: envoy.file_access_log
             config:
               path: /dev/stdout
+          use_remote_address: true
           route_config:
             name: local_route
             virtual_hosts:
@@ -42,40 +43,18 @@ static_resources:
                     substitution: /w/rest.php/\1\3
                   auto_host_rewrite_header: "x-internal-host"
                   cluster: service_echoapi
+                  rate_limits:
+                    - stage: 0
+                      actions:
+                        - {request_headers: {header_name: "x-client-id", descriptor_key: "client-id"}}
+#                        - {request_headers: {header_name: "x-class", descriptor_key: "class"}}
+                        - {remote_address: {}}
               - match:
                   prefix: "/"
                 route:
                   host_rewrite: www.google.com
                   cluster: service_echoapi
           http_filters:
-          - name: envoy.filters.http.lua
-            typed_config:
-              "@type": type.googleapis.com/envoy.config.filter.http.lua.v2.Lua
-              inline_code: |
-                function envoy_on_request(request_handle)
-                  local path = request_handle:headers():get(":path")
-                  project, lang = string.match(path, "^/%a+/v%d/(%a+)/(%a+)/.*$")
-
-                  if(project) and (lang)
-                  then
-                    request_handle:headers():add("x-internal-host", lang .. "." ..project .. ".org")
-
-                    -- Dynamic metadata; Can be accessed by other filters
-                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "lang", lang)
-                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "project", project)
-                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "hostname", lang .. "." .. project .. ".org")
-                  end
-
-                end
-
-                function envoy_on_response(response_handle)
-                  -- Testing that JWT is verified and payload has been added to Dynamic metadata
-                  if(response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn") ~= nil)
-                  then
-                    payload = response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")["jwt_payload"]
-                    response_handle:logInfo(payload.iss)
-                  end
-                end
           - name: envoy.filters.http.jwt_authn
             config:
               providers:
@@ -96,6 +75,48 @@ static_resources:
                       requirements:
                         - provider_name: wikimedia
                         - allow_missing: {}
+          - name: envoy.filters.http.lua
+            typed_config:
+              "@type": type.googleapis.com/envoy.config.filter.http.lua.v2.Lua
+              inline_code: |
+                function envoy_on_request(request_handle)
+                  local path = request_handle:headers():get(":path")
+                  project, lang = string.match(path, "^/%a+/v%d/(%a+)/(%a+)/.*$")
+
+                  if(project) and (lang)
+                  then
+                    request_handle:headers():add("x-internal-host", lang .. "." ..project .. ".org")
+
+                    -- Dynamic metadata; Can be accessed by other filters
+                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "lang", lang)
+                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "project", project)
+                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "hostname", lang .. "." .. project .. ".org")
+                  end
+
+                  -- Add x-client-id and x-class headers if JWT payload exists
+                  if (request_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn") ~=nil) then
+                    payload = request_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")["jwt_payload"]
+                    request_handle:headers():add("x-client-id", payload.iat)
+                  end
+                end
+
+                function envoy_on_response(response_handle)
+                  -- Testing that JWT is verified and payload has been added to Dynamic metadata
+                  if(response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn") ~= nil)
+                  then
+                    payload = response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")["jwt_payload"]
+                    response_handle:logInfo(payload.iss)
+                  end
+                end
+          - name: envoy.filters.http.ratelimit
+            config:
+              domain: wikipedia
+              stage: 0
+              timeout: 0.25s
+              rate_limit_service:
+                grpc_service:
+                  envoy_grpc:
+                    cluster_name: rate_limit_cluster
           - name: envoy.filters.http.router
   clusters:
   - name: service_echoapi
@@ -119,3 +140,12 @@ static_resources:
     #   typed_config:
     #     "@type": type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext
     #     sni: www.google.com
+  - name: rate_limit_cluster
+    type: strict_dns
+    connect_timeout: 0.25s
+    lb_policy: ROUND_ROBIN
+    http2_protocol_options: {}
+    hosts:
+      - socket_address:
+          address: ratelimit
+          port_value: 8081

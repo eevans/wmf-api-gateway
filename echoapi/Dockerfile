@@ -19,7 +19,7 @@ COPY echoapi.go Makefile ./
 
 RUN make
 
-EXPOSE 8080
+EXPOSE 8888
 
 USER echoapi
 
