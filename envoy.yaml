@@ -1,3 +1,4 @@
+
 admin:
   access_log_path: /tmp/admin_access.log
   address:
@@ -19,6 +20,10 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
           stat_prefix: ingress_http
+          access_log: # configure logging
+            name: envoy.file_access_log
+            config:
+              path: /dev/stdout
           route_config:
             name: local_route
             virtual_hosts:
