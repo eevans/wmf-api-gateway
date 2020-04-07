@@ -2,7 +2,3 @@
 	path = ratelimit
 	url = https://github.com/envoyproxy/ratelimit.git
 	branch = master
-[submodule "hydra"]
-	path = hydra
-	url = https://github.com/ory/hydra.git
-	branch = master
