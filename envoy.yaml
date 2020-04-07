@@ -56,19 +56,25 @@ static_resources:
                   local path = request_handle:headers():get(":path")
                   project, lang = string.match(path, "^/%a+/v%d/(%a+)/(%a+)/.*$")
 
-                  request_handle:headers():add("x-internal-host", lang .. "." ..project .. ".org")
+                  if(project) and (lang)
+                  then
+                    request_handle:headers():add("x-internal-host", lang .. "." ..project .. ".org")
 
-                  -- Dynamic metadata; Can be accessed by other filters
-                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "lang", lang)
-                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "project", project)
-                  request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "hostname", lang .. "." .. project .. ".org")
+                    -- Dynamic metadata; Can be accessed by other filters
+                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "lang", lang)
+                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "project", project)
+                    request_handle:streamInfo():dynamicMetadata():set("envoy.lua", "hostname", lang .. "." .. project .. ".org")
+                  end
+
                 end
 
                 function envoy_on_response(response_handle)
                   -- Testing that JWT is verified and payload has been added to Dynamic metadata
-                  payload = response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")["jwt_payload"]
-
-                  response_handle:logInfo(payload.iss)
+                  if(response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn") ~= nil)
+                  then
+                    payload = response_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")["jwt_payload"]
+                    response_handle:logInfo(payload.iss)
+                  end
                 end
           - name: envoy.filters.http.jwt_authn
             config:
