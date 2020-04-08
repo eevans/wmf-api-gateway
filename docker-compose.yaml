@@ -1,14 +1,22 @@
 version: '3'
 services:
   envoy:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
     ports:
       - 9901:9901
       - 10000:10000
+    networks:
+      - envoymesh
   echoapi:
     image: echoapi:latest
     ports:
       - 8888:8888
+    networks:
+      - envoymesh
   redis:
     image: redis:alpine
     expose:
@@ -16,7 +24,9 @@ services:
     ports:
       - 6379:6379
     networks:
-      - ratelimit-network
+      envoymesh:
+        aliases:
+          - redis_server
   ratelimit:
     image: ratelimit:latest
     command: /bin/ratelimit
@@ -27,7 +37,7 @@ services:
     depends_on:
       - redis
     networks:
-      - ratelimit-network
+      - envoymesh
     volumes:
       - binary:/usr/local/bin/
       - ./examples:/data
@@ -40,7 +50,7 @@ services:
       - RUNTIME_SUBDIRECTORY=ratelimit
 
 networks:
-  ratelimit-network:
+  envoymesh: {}
 
 volumes:
   binary:

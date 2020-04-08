@@ -48,7 +48,6 @@ static_resources:
                       actions:
                         - {request_headers: {header_name: "x-client-id", descriptor_key: "client-id"}}
                         - {request_headers: {header_name: "x-class", descriptor_key: "class"}}
-                        - {remote_address: {}}
               - match:
                   prefix: "/"
                 route:
@@ -100,6 +99,11 @@ static_resources:
                     request_handle:headers():add("x-client-id", payload.cid)
                     request_handle:logInfo("Adding header x-class: " .. payload.cls)
                     request_handle:headers():add("x-class", payload.cls)
+                    request_handle:headers():remove("X-Forwarded-For")
+                  else
+                    ip_address = request_handle:headers():get("X-Forwarded-For")
+                    request_handle:headers():add("x-client-id", ip_address)
+                    request_handle:headers():add("x-class", "anonymous")
                   end
                 end
 

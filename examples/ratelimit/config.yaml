@@ -1,19 +1,15 @@
 ---
 domain: wikipedia
 descriptors:
-  - key: remote_address
-    rate_limit:
-      requests_per_unit: 0
-      unit: second
   - key: client-id
     descriptors:
       - key: class
-        value: class1
+        value: degenerates
+        rate_limit:
+          requests_per_unit: 1
+          unit: second
+      - key: class
+        value: anonymous
         rate_limit:
           requests_per_unit: 0
           unit: second
-#      - key: class
-#        value: class2
-#        rate_limit:
-#          requests_per_unit: 10
-#          unit: second
