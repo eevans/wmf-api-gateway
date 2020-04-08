@@ -2,4 +2,4 @@ TODOs
 =====
 
 - [ ] Lots of deprecation warnings
-- [ ] Rate limiter configuration
+- [x] Rate limiter configuration
