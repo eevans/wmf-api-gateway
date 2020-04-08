@@ -13,3 +13,7 @@ descriptors:
         rate_limit:
           requests_per_unit: 0
           unit: second
+      - key: class # default behavior if class value isn't degenerates or anonymous
+        rate_limit:
+          requests_per_unit: 0
+          unit: second
