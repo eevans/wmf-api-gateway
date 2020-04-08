@@ -2,13 +2,18 @@ package main
 
 import (
 	"fmt"
+	jose "github.com/square/go-jose"
 	jwt "github.com/square/go-jose/jwt"
-	jose "gopkg.in/square/go-jose.v2"
 	"io/ioutil"
 	"log"
 	"os"
 	"time"
 )
+
+type customClaims struct {
+	Class    string `json:"cls"`
+	ClientID string `json:"cid"`
+}
 
 func main() {
 	// Accepts a single argument for an RSA256 JWK private signing key.
@@ -52,8 +57,10 @@ func main() {
 		Expiry:    expiry,
 	}
 
+	customCl := customClaims{"degenerates", "b6123f22-79b6-11ea-8bde-c77510c60c52"}
+
 	// Sign and encode the JWT
-	raw, err := jwt.Signed(signer).Claims(cl).CompactSerialize()
+	raw, err := jwt.Signed(signer).Claims(cl).Claims(customCl).CompactSerialize()
 	if err != nil {
 		log.Fatalf("Error signing and serializing JWT: %s\n", err)
 	}

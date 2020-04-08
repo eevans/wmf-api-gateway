@@ -47,7 +47,7 @@ static_resources:
                     - stage: 0
                       actions:
                         - {request_headers: {header_name: "x-client-id", descriptor_key: "client-id"}}
-#                        - {request_headers: {header_name: "x-class", descriptor_key: "class"}}
+                        - {request_headers: {header_name: "x-class", descriptor_key: "class"}}
                         - {remote_address: {}}
               - match:
                   prefix: "/"
@@ -96,7 +96,10 @@ static_resources:
                   -- Add x-client-id and x-class headers if JWT payload exists
                   if (request_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn") ~=nil) then
                     payload = request_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")["jwt_payload"]
-                    request_handle:headers():add("x-client-id", payload.iat)
+                    request_handle:logInfo("Adding header x-client-id: " .. payload.cid)
+                    request_handle:headers():add("x-client-id", payload.cid)
+                    request_handle:logInfo("Adding header x-class: " .. payload.cls)
+                    request_handle:headers():add("x-class", payload.cls)
                   end
                 end
 
