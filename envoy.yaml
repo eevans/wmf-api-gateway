@@ -20,10 +20,15 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
           stat_prefix: ingress_http
-          access_log: # configure logging
-            name: envoy.file_access_log
+          # configure logging
+          access_log:
+            # Deprecated.
+            #name: envoy.file_access_log
+            name: envoy.access_loggers.file
             config:
               path: /dev/stdout
+              format: |
+                [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%" "%UPSTREAM_HOST%" %DYNAMIC_METADATA(envoy.filters.http.jwt_authn:jwt_payload:cid)%
           use_remote_address: true
           route_config:
             name: local_route
