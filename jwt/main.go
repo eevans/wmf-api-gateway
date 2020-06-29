@@ -7,24 +7,35 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
+type RateLimitType struct {
+	RequestsPerUnit int64	`json:"requests_per_unit"`
+	Unit 			string 	`json:"unit"`
+}
+
 type customClaims struct {
-	Class    string `json:"cls"`
-	ClientID string `json:"cid"`
+	ClientID  string		`json:"cid"`
+	RateLimit RateLimitType	`json:"ratelimit"`
 }
 
 func main() {
 	// Accepts a single argument for an RSA256 JWK private signing key.
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "%s <private_key.json>\n", os.Args[0])
+	if len(os.Args) != 3 {
+		fmt.Fprintf(os.Stderr, "%s <private_key.json> <number_of_requests_per_minute>\n", os.Args[0])
 		os.Exit(1)
 	}
 
 	f, err := ioutil.ReadFile(os.Args[1])
 	if err != nil {
 		log.Fatalf("Error reading %s: %s\n", os.Args[1], err)
+	}
+
+	requestPerMinute, err := strconv.ParseInt(os.Args[2], 10, 64)
+	if err != nil {
+		log.Fatalf("Error: #{os.Args[2]} is not a number")
 	}
 
 	private := jose.JSONWebKey{}
@@ -57,7 +68,8 @@ func main() {
 		Expiry:    expiry,
 	}
 
-	customCl := customClaims{"degenerates", "b6123f22-79b6-11ea-8bde-c77510c60c52"}
+	customCl := customClaims{"b6123f22-79b6-11ea-8bde-c77510c60c52",
+		RateLimitType{requestPerMinute, "MINUTE"}}
 
 	// Sign and encode the JWT
 	raw, err := jwt.Signed(signer).Claims(cl).Claims(customCl).CompactSerialize()

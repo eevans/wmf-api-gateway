@@ -1,19 +1,7 @@
 ---
 domain: wikipedia
 descriptors:
-  - key: client-id
-    descriptors:
-      - key: class
-        value: degenerates
-        rate_limit:
-          requests_per_unit: 1
-          unit: second
-      - key: class
-        value: anonymous
-        rate_limit:
-          requests_per_unit: 0
-          unit: second
-      - key: class # default behavior if class value isn't degenerates or anonymous
-        rate_limit:
-          requests_per_unit: 0
-          unit: second
+  - key: user
+    rate_limit:
+      requests_per_unit: 1
+      unit: second

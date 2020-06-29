@@ -47,6 +47,6 @@ In another terminal:
 
     $ curl -v http://localhost:10000/foo/bar/baz  # In other terminal
     $ curl -v http://localhost:10000/core/v5/wikipedia/en/foo/bar/baz
-    $ WEB_TOKEN=`jwt/jwt jwt/keys/jwk-sig-FafStFaO5aapFjOjHhz9cWifF5pr17Ymi5dskSi6QP0=-priv.json`
+    $ WEB_TOKEN=`jwt/jwt jwt/keys/jwk-sig-FafStFaO5aapFjOjHhz9cWifF5pr17Ymi5dskSi6QP0=-priv.json <number_of_requests_per_minute>`
     $ curl -v -H "Authorization: Bearer $WEB_TOKEN" http://localhost:10000/core/v5/wikipedia/en/foo/bar/baz
     $ curl -v -H "Authorization: Bearer incorrect_JWT" http://localhost:10000/core/v5/wikipedia/en/foo/bar/baz  # 401
